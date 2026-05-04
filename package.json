@@ -1,0 +1,22 @@
+{
+  "name": "telegram-topic-router",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "start:user": "node src/user-index.js",
+    "user:login": "node src/user-login.js",
+    "openai:test": "node src/test-openai.js",
+    "stop": "node src/stop.js",
+    "stop:user": "node src/stop-user.js",
+    "ids": "node src/print-telegram-ids.js",
+    "check": "node --check src/index.js && node --check src/config.js && node --check src/telegram.js && node --check src/summarizer.js && node --check src/print-telegram-ids.js && node --check src/stop.js && node --check src/stop-user.js && node --check src/test-openai.js && node --check src/user-login.js && node --check src/user-index.js"
+  },
+  "dependencies": {
+    "telegram": "^2.26.22"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
