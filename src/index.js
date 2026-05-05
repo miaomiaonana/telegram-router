@@ -128,14 +128,22 @@ async function sendSummary(messages, title, { sendEmpty = false } = {}) {
     return;
   }
 
-  const summary = await summarizeMessages(messages, config, title);
-  if (!summary) return;
+  try {
+    const summary = await summarizeMessages(messages, config, title);
+    if (!summary) return;
 
-  await telegram.sendMessage({
-    targetChatId: config.chatId,
-    topicId: config.summaryTopicId,
-    text: summary,
-  });
+    await telegram.sendMessage({
+      targetChatId: config.chatId,
+      topicId: config.summaryTopicId,
+      text: summary,
+    });
+  } catch (error) {
+    await telegram.sendMessage({
+      targetChatId: config.chatId,
+      topicId: config.summaryTopicId,
+      text: `<b>${escapeHtml(title)}</b>\n\nOpenAI 总结失败：${escapeHtml(error.message)}`,
+    });
+  }
 }
 
 async function sendPeriodicSummary() {

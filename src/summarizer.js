@@ -111,19 +111,13 @@ export async function summarizeMessages(messages, config, title = "群消息整�
 
   if (cleaned.length === 0) return "";
 
-  if (config.openaiApiKey) {
-    try {
-      const summary = await summarizeWithOpenAI(cleaned, config, title);
-      console.log("OpenAI summary succeeded.");
-      return summary;
-    } catch (error) {
-      console.error(`OpenAI summary unavailable, using local summary: ${error.message}`);
-    }
-  } else {
-    console.error("OpenAI summary skipped: OPENAI_API_KEY is empty.");
+  if (!config.openaiApiKey) {
+    throw new Error("OPENAI_API_KEY is empty.");
   }
 
-  return summarizeLocally(cleaned, title);
+  const summary = await summarizeWithOpenAI(cleaned, config, title);
+  console.log("OpenAI summary succeeded.");
+  return summary;
 }
 
 async function summarizeWithOpenAI(messages, config, title) {
@@ -188,56 +182,6 @@ function extractOpenAIText(body) {
   }
 
   return textParts.join("\n").trim();
-}
-
-function summarizeLocally(messages, title) {
-  const scopedMessages = messages.slice(-80);
-  const grouped = new Map();
-  for (const message of scopedMessages) {
-    const group = message.group || "未分类";
-    if (!grouped.has(group)) grouped.set(group, []);
-    grouped.get(group).push(message);
-  }
-
-  const sections = [];
-  let sectionIndex = 0;
-  for (const [group, items] of grouped.entries()) {
-    const symbolCounts = new Map();
-    for (const item of items) {
-      for (const symbol of item.symbols || []) {
-        symbolCounts.set(symbol, (symbolCounts.get(symbol) || 0) + 1);
-      }
-    }
-
-    const topSymbols = [...symbolCounts.entries()]
-      .sort((first, second) => second[1] - first[1])
-      .slice(0, 3)
-      .map(([symbol]) => symbol);
-
-    if (sectionIndex > 0) sections.push("---------");
-    const lines =
-      topSymbols.length > 0
-        ? topSymbols.flatMap((symbol) => [
-            `<b>${escapeHtml(symbol)}</b>`,
-            "- 本地兜底摘要：仅识别到该核心标的，未做智能整理。",
-          ])
-        : ["无有效市场信息。"];
-
-    sections.push(
-      `<b>${escapeHtml(group)}</b>`,
-      ...lines,
-      "",
-    );
-    sectionIndex += 1;
-  }
-
-  return [
-    `<b>${escapeHtml(title)}</b>`,
-    "",
-    `<b>消息数量：</b>${messages.length}`,
-    "",
-    ...sections,
-  ].join("\n");
 }
 
 export { escapeHtml };
