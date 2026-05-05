@@ -107,8 +107,7 @@ export function isWantedMessage(message, includePatterns, excludePatterns) {
 export async function summarizeMessages(messages, config, title = "群消息整理") {
   const cleaned = messages
     .map(compactMessage)
-    .filter((message) => message.text)
-    .slice(-config.maxSummaryMessages);
+    .filter((message) => message.text);
 
   if (cleaned.length === 0) return "";
 
@@ -132,7 +131,7 @@ async function summarizeWithOpenAI(messages, config, title) {
     {
       role: "system",
       content:
-        `你是 Telegram 群消息整理员。摘要标题是“${title}”。请总结全部原文信息，不要过滤吃喝玩乐、体育、闲聊、直播间、个人日常或无具体标的的内容；所有内容都要纳入整理。
+        `你是 Telegram 群消息整理员。摘要标题是“${title}”。请总结时间窗口内全部有信息量的原文内容。
 
 严格要求：只能总结原文明确表达的观点，不得引入外部知识，不得根据常识自行推断，不得添加原文没有出现的价格、方向、风险、催化或建议。原文没有明确观点时，必须写“不明确”。“关注”也只能来自原文直接提到的信息；如果原文没有风险或关注点，写“原文未提及”。
 
@@ -140,7 +139,9 @@ async function summarizeWithOpenAI(messages, config, title) {
 
 每个板块用自然语言短摘要或 2-5 条短 bullet 总结原文即可。要在摘要里适当提到 watchedUser 用户名，例如“大宇提到……”“Binance 发布……”。不要专门列“明确观点”“风险”“关注点”等固定栏目。可以保留原文提到的股票、代币、项目、交易所、交易对、事件和数据，但只做压缩整理，不做额外解读。
 
-不要逐条复述原文。不要出现“监控到新推文”“你关注的用户”“用户所属分组”“推文内容”。不要为了凑数输出无效内容。整体尽量短，优先忠实于原文，其次才是信息密度。输出可以使用 Telegram HTML 标签，如 <b>。`,
+必须省略没有独立信息量的泛泛占位句，例如“某某、某某等多条简短闲聊或转发”“多条无关闲聊”“若干转发”。如果内容只是 gm、表情、单纯链接、寒暄、无上下文转发、无法判断含义的碎片，不要为了覆盖它而写一句废话。
+
+不要逐条复述原文。不要出现“监控到新推文”“你关注的用户”“用户所属分组”“推文内容”。整体尽量简洁，但必须覆盖时间窗口内全部有信息量的市场、项目、股票、代币、数据、观点和事件。输出可以使用 Telegram HTML 标签，如 <b>。`,
     },
     {
       role: "user",
@@ -157,7 +158,7 @@ async function summarizeWithOpenAI(messages, config, title) {
     body: JSON.stringify({
       model: config.openaiModel,
       input,
-      max_output_tokens: 900,
+      max_output_tokens: config.summaryMaxOutputTokens,
     }),
   });
 
@@ -190,8 +191,9 @@ function extractOpenAIText(body) {
 }
 
 function summarizeLocally(messages, title) {
+  const scopedMessages = messages.slice(-80);
   const grouped = new Map();
-  for (const message of messages) {
+  for (const message of scopedMessages) {
     const group = message.group || "未分类";
     if (!grouped.has(group)) grouped.set(group, []);
     grouped.get(group).push(message);

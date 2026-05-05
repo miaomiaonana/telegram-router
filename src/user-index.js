@@ -112,7 +112,7 @@ function messagesSince(timestamp) {
 
 async function historyMessagesSince(timestamp) {
   const messages = [];
-  const limit = Math.max(config.maxSummaryMessages * 5, 200);
+  const limit = 1000;
 
   for await (const message of userClient.iterMessages(config.chatId, { limit })) {
     const date = Math.floor(message.date || Date.now() / 1000);
@@ -122,7 +122,7 @@ async function historyMessagesSince(timestamp) {
     messages.push(normalizedMessage(message));
   }
 
-  return messages.reverse().slice(-config.maxSummaryMessages);
+  return messages.reverse();
 }
 
 async function sendSummary(messages, title, { sendEmpty = false } = {}) {

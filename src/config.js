@@ -91,6 +91,7 @@ export const config = {
   summaryCommandHours: optionalInteger("SUMMARY_COMMAND_HOURS", 2),
   summaryHistoryHours: optionalInteger("SUMMARY_HISTORY_HOURS", 24),
   maxSummaryMessages: optionalInteger("MAX_SUMMARY_MESSAGES", 80),
+  summaryMaxOutputTokens: optionalInteger("SUMMARY_MAX_OUTPUT_TOKENS", 4096),
   openaiApiKey: env.OPENAI_API_KEY || "",
   openaiModel: env.OPENAI_MODEL || "gpt-4.1-mini",
   routingRules: [
