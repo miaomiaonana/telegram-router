@@ -48,7 +48,9 @@ function isSourceTopic(message) {
 
 function isSummaryCommand(message) {
   const text = messageText(message).trim();
-  return text === config.summaryCommand || text.startsWith(`${config.summaryCommand} `);
+  return config.summaryCommandAliases.some(
+    (command) => text === command || text.startsWith(`${command} `),
+  );
 }
 
 function rememberMessage(message) {

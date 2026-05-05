@@ -25,6 +25,7 @@ TRADING_TOPIC_ID=交易消息要发去的topic_id
 SUMMARY_TOPIC_ID=摘要要发去的topic_id
 SUMMARY_INTERVAL_MINUTES=240
 SUMMARY_COMMAND=/summary2h
+SUMMARY_COMMAND_ALIASES=/ai_summary2h
 SUMMARY_COMMAND_HOURS=2
 OPENAI_API_KEY=可选
 ```
@@ -44,7 +45,7 @@ SOURCE_TOPIC_IDS=11,22,33
 ```
 
 默认每 4 小时自动总结一次。  
-在这个群任意 topic 发送 `/summary2h`，会立刻总结过去 2 小时的信息并发送到 `SUMMARY_TOPIC_ID`。
+在这个群任意 topic 发送 `/summary2h` 或 `/ai_summary2h`，会立刻总结过去 2 小时的信息并发送到 `SUMMARY_TOPIC_ID`。
 
 ## 运行
 

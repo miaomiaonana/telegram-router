@@ -83,6 +83,11 @@ export const config = {
   watchMonitorIntervalMinutes: optionalInteger("WATCH_MONITOR_INTERVAL_MINUTES", 5),
   summaryIntervalMinutes: optionalInteger("SUMMARY_INTERVAL_MINUTES", 240),
   summaryCommand: env.SUMMARY_COMMAND || "/summary2h",
+  summaryCommandAliases: [
+    env.SUMMARY_COMMAND || "/summary2h",
+    "/ai_summary2h",
+    ...optionalList("SUMMARY_COMMAND_ALIASES"),
+  ],
   summaryCommandHours: optionalInteger("SUMMARY_COMMAND_HOURS", 2),
   summaryHistoryHours: optionalInteger("SUMMARY_HISTORY_HOURS", 24),
   maxSummaryMessages: optionalInteger("MAX_SUMMARY_MESSAGES", 80),

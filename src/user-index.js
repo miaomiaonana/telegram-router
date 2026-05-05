@@ -81,7 +81,9 @@ function isSourceTopic(message) {
 
 function isSummaryCommand(message) {
   const text = userMessageText(message).trim();
-  return text === config.summaryCommand || text.startsWith(`${config.summaryCommand} `);
+  return config.summaryCommandAliases.some(
+    (command) => text === command || text.startsWith(`${command} `),
+  );
 }
 
 function matchingTopicIds(message) {
