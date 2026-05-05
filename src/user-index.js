@@ -110,6 +110,21 @@ function messagesSince(timestamp) {
   return messageHistory.filter((message) => message.date * 1000 >= timestamp);
 }
 
+async function historyMessagesSince(timestamp) {
+  const messages = [];
+  const limit = Math.max(config.maxSummaryMessages * 5, 200);
+
+  for await (const message of userClient.iterMessages(config.chatId, { limit })) {
+    const date = Math.floor(message.date || Date.now() / 1000);
+    if (date * 1000 < timestamp) break;
+    if (!userMessageText(message) || isSummaryCommand(message) || !isSourceTopic(message)) continue;
+
+    messages.push(normalizedMessage(message));
+  }
+
+  return messages.reverse().slice(-config.maxSummaryMessages);
+}
+
 async function sendSummary(messages, title, { sendEmpty = false } = {}) {
   if (messages.length === 0) {
     if (!sendEmpty) return;
@@ -134,7 +149,9 @@ async function sendSummary(messages, title, { sendEmpty = false } = {}) {
 
 async function sendWindowSummary(hours) {
   const since = Date.now() - hours * 60 * 60 * 1000;
-  await sendSummary(messagesSince(since), `过去${hours}小时群消息整理`, { sendEmpty: true });
+  const historyMessages = await historyMessagesSince(since);
+  console.log(`Summary command loaded ${historyMessages.length} messages from Telegram history.`);
+  await sendSummary(historyMessages, `过去${hours}小时群消息整理`, { sendEmpty: true });
 }
 
 async function sendPeriodicSummary() {
