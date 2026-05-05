@@ -14,6 +14,7 @@ function compactMessage(message) {
 
   return {
     author,
+    watchedUser: messageWatchedUser(rawText),
     text: cleanMessageText(rawText),
     rawText,
     date: new Date(message.date * 1000).toISOString(),
@@ -31,6 +32,16 @@ export function messageGroup(text) {
   if (!match) return "未分类";
 
   return match[1].trim().replace(/\s+/g, " ");
+}
+
+export function messageWatchedUser(text) {
+  const match = text.match(/你关注的用户\s*[:：]\s*([^\n\r]+)/i);
+  if (!match) return "";
+
+  return match[1]
+    .trim()
+    .replace(/\s*\(备注[:：][^)]+\)\s*/g, "")
+    .replace(/\s+/g, " ");
 }
 
 export function cleanMessageText(text) {
@@ -127,7 +138,7 @@ async function summarizeWithOpenAI(messages, config, title) {
 
 按 group 字段分类输出，例如“交易”“默认分组”“美股”“官方账号”。不同板块之间必须单独插入一行“---------”。
 
-每个板块用自然语言短摘要或 2-5 条短 bullet 总结原文即可。不要专门列“明确观点”“风险”“关注点”等固定栏目。可以保留原文提到的股票、代币、项目、交易所、交易对、事件和数据，但只做压缩整理，不做额外解读。
+每个板块用自然语言短摘要或 2-5 条短 bullet 总结原文即可。要在摘要里适当提到 watchedUser 用户名，例如“大宇提到……”“Binance 发布……”。不要专门列“明确观点”“风险”“关注点”等固定栏目。可以保留原文提到的股票、代币、项目、交易所、交易对、事件和数据，但只做压缩整理，不做额外解读。
 
 不要逐条复述原文。不要出现“监控到新推文”“你关注的用户”“用户所属分组”“推文内容”。不要为了凑数输出无效内容。整体尽量短，优先忠实于原文，其次才是信息密度。输出可以使用 Telegram HTML 标签，如 <b>。`,
     },
@@ -155,7 +166,27 @@ async function summarizeWithOpenAI(messages, config, title) {
     throw new Error(`OpenAI summary failed: ${body.error?.message || response.statusText}`);
   }
 
-  return body.output_text || summarizeLocally(messages, title);
+  const outputText = extractOpenAIText(body);
+  if (!outputText) {
+    throw new Error("OpenAI returned no summary text");
+  }
+
+  return outputText;
+}
+
+function extractOpenAIText(body) {
+  if (body.output_text) return body.output_text.trim();
+
+  const textParts = [];
+  for (const item of body.output || []) {
+    for (const content of item.content || []) {
+      if (content.type === "output_text" && content.text) {
+        textParts.push(content.text);
+      }
+    }
+  }
+
+  return textParts.join("\n").trim();
 }
 
 function summarizeLocally(messages, title) {
@@ -186,8 +217,7 @@ function summarizeLocally(messages, title) {
       topSymbols.length > 0
         ? topSymbols.flatMap((symbol) => [
             `<b>${escapeHtml(symbol)}</b>`,
-            "- 观点：不明确，本地摘要只能识别核心标的。",
-            "- 关注：OpenAI 摘要暂未成功，需查看服务日志中的 API 错误。",
+            "- 本地兜底摘要：仅识别到该核心标的，未做智能整理。",
           ])
         : ["无有效市场信息。"];
 
