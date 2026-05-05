@@ -23,6 +23,25 @@ function compactMessage(message) {
   };
 }
 
+function dedupeMessages(messages) {
+  const seen = new Set();
+  const deduped = [];
+
+  for (const message of messages) {
+    const key = [
+      message.group || "",
+      message.watchedUser || message.author || "",
+      message.text.replace(/\s+/g, " ").trim(),
+    ].join("\u0001");
+
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(message);
+  }
+
+  return deduped;
+}
+
 export function messageText(message) {
   return message.text || message.caption || "";
 }
@@ -105,9 +124,11 @@ export function isWantedMessage(message, includePatterns, excludePatterns) {
 }
 
 export async function summarizeMessages(messages, config, title = "群消息整理") {
-  const cleaned = messages
-    .map(compactMessage)
-    .filter((message) => message.text);
+  const cleaned = dedupeMessages(
+    messages
+      .map(compactMessage)
+      .filter((message) => message.text),
+  );
 
   if (cleaned.length === 0) return "";
 
@@ -130,6 +151,8 @@ async function summarizeWithOpenAI(messages, config, title) {
 严格要求：只能总结原文明确表达的观点，不得引入外部知识，不得根据常识自行推断，不得添加原文没有出现的价格、方向、风险、催化或建议。原文没有明确观点时，必须写“不明确”。“关注”也只能来自原文直接提到的信息；如果原文没有风险或关注点，写“原文未提及”。
 
 按 group 字段分类输出，例如“交易”“默认分组”“美股”“官方账号”。不同板块之间必须单独插入一行“---------”。
+
+每条输入消息只能归入它自己的 group 字段对应板块，严禁跨 group 重复总结。同一条内容如果已经在“交易”“美股”“官方账号”等板块总结过，绝不能再放进“默认分组”。“默认分组”只允许总结 group 字段真实等于“默认分组”的消息。
 
 每个板块用自然语言短摘要或 2-5 条短 bullet 总结原文即可。要在摘要里适当提到 watchedUser 用户名，例如“大宇提到……”“Binance 发布……”。不要专门列“明确观点”“风险”“关注点”等固定栏目。可以保留原文提到的股票、代币、项目、交易所、交易对、事件和数据，但只做压缩整理，不做额外解读。
 
