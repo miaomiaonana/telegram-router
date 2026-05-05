@@ -6,12 +6,18 @@
   "scripts": {
     "start": "node src/index.js",
     "start:user": "node src/user-index.js",
+    "start:watch": "node src/watch-index.js",
+    "start:watch:bot": "node src/watch-bot-index.js",
+    "start:value:bot": "node src/value-bot-index.js",
     "user:login": "node src/user-login.js",
     "openai:test": "node src/test-openai.js",
     "stop": "node src/stop.js",
     "stop:user": "node src/stop-user.js",
+    "stop:watch": "node src/stop-watch.js",
+    "stop:watch:bot": "node src/stop-watch-bot.js",
+    "stop:value:bot": "node src/stop-value-bot.js",
     "ids": "node src/print-telegram-ids.js",
-    "check": "node --check src/index.js && node --check src/config.js && node --check src/telegram.js && node --check src/summarizer.js && node --check src/print-telegram-ids.js && node --check src/stop.js && node --check src/stop-user.js && node --check src/test-openai.js && node --check src/user-login.js && node --check src/user-index.js"
+    "check": "node --check src/index.js && node --check src/config.js && node --check src/market-data.js && node --check src/telegram.js && node --check src/summarizer.js && node --check src/watchlist.js && node --check src/print-telegram-ids.js && node --check src/stop.js && node --check src/stop-user.js && node --check src/stop-watch.js && node --check src/stop-watch-bot.js && node --check src/stop-value-bot.js && node --check src/test-openai.js && node --check src/user-login.js && node --check src/user-index.js && node --check src/watch-index.js && node --check src/watch-bot-index.js && node --check src/value-bot-index.js"
   },
   "dependencies": {
     "telegram": "^2.26.22"

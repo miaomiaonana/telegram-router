@@ -81,10 +81,147 @@ npm run start:user
 
 用户账号监听版会用你的 Telegram 账号读取群消息，再用 bot 把匹配到的文本发送到对应 topic。
 
+## 妖币监控 topic
+
+在 `.env` 里配置：
+
+```ini
+WATCH_TOPIC_ID=妖币监控topic_id
+WATCHLIST_FILE=watchlist.json
+ALERT_STATE_FILE=alert-state.json
+WATCH_MONITOR_INTERVAL_MINUTES=5
+COINGLASS_API_KEY=你的_coinglass_api_key
+COINGLASS_BASE_URL=https://open-api-v4.coinglass.com
+```
+
+在“妖币监控” topic 里可以使用：
+
+```text
+/add BTC
+/remove BTC
+/watchlist
+/ta BTC
+```
+
+中文也支持：
+
+```text
+添加 BTC
+删除 BTC
+列表
+分析 BTC
+```
+
+`/ta BTC` 会返回公开行情指标，包括当前价格、过去 1h 涨跌、1h 成交额、当前 OI、market cap、24h 变化等。数据来自 Binance public API 和 CoinGecko public API，仅供信息整理，不构成交易建议。
+
+新版 `/ta BTC` 使用 CoinGlass v4 API 和 CoinGecko public API，返回：
+
+- 当前 OI
+- OI Change (1h)
+- OI Change (15m)
+- Funding Rate
+- Market Cap
+- OI / Market Cap
+- RSI (1 hour)
+- Volume (1h%)
+- Price Change (1h)
+- Price Change (15m)
+- Daily EMA200
+- Daily Close vs EMA200
+- 1h Supertrend (10,3)
+- 1h Supertrend Line
+- 1h Supertrend Flip
+- Binance Top Trader Long/Short Ratio (Accounts)
+- Binance Top Trader Long/Short Ratio (Positions)
+
+定时监控会每 `WATCH_MONITOR_INTERVAL_MINUTES` 分钟扫描一次监控列表，并在“妖币监控” topic 推送 alert：
+
+- `OI Change (1h) > 20%`，并且 `Positions Ratio > Accounts Ratio` 或 `Funding Rate < 0`
+- `OI Change (15m) < -15%`，并且 `Price Change (15m) < -10%`
+- `OI Change (15m) > 15%`，并且 `Price Change (15m) > 10%`，并且 `Volume (15m%) > 75%`
+- 日线收盘价从 EMA200 下方站上 EMA200，或从 EMA200 上方跌下 EMA200 时提醒
+- 1h Supertrend 发生变化时提醒，也就是空翻多或多翻空
+- `OI / Market Cap` 从 `< 0.5` 变成 `>= 0.5`，或从 `>= 0.5` 变成 `< 0.5` 时提醒
+
+如果只需要妖币监控，不需要读取其他 topic，可以单独启动 Bot 版：
+
+```bash
+npm run start:watch:bot
+```
+
 检查代码语法：
 
 ```bash
 npm run check
+```
+
+## 价值币沉淀 topic
+
+在 `.env` 里配置：
+
+```ini
+VALUE_TOPIC_ID=价值币沉淀topic_id
+VALUE_WATCHLIST_FILE=value-watchlist.json
+VALUE_ALERT_STATE_FILE=value-alert-state.json
+```
+
+在“价值币沉淀” topic 里可以使用：
+
+```text
+/add BTC
+/remove BTC
+/watchlist
+/ta BTC
+```
+
+中文也支持：
+
+```text
+添加 BTC
+删除 BTC
+列表
+分析 BTC
+```
+
+`/ta BTC` 会返回偏中周期的 4h / 1d 指标，包括：
+
+- 当前价格
+- 当前 OI
+- 当前 OI USD
+- OI Change (4h)
+- Funding Rate
+- Market Cap
+- OI / Market Cap
+- RSI (4 hour)
+- Volume (4h%)
+- Volume (4h)
+- Price Change (4h)
+- Daily EMA200
+- Daily Close vs EMA200
+- 4h Supertrend (10,3)
+- 4h Supertrend Line
+- 1d Supertrend (10,3)
+- 1d Supertrend Line
+- Binance Top Trader Long/Short Ratio (Accounts)
+- Binance Top Trader Long/Short Ratio (Positions)
+
+单独启动价值币沉淀 Bot：
+
+```bash
+npm run start:value:bot
+```
+
+价值币沉淀 alert 会按 `WATCH_MONITOR_INTERVAL_MINUTES` 的间隔扫描沉淀列表：
+
+- 日线收盘价从 EMA200 下方重新站上 EMA200，或从 EMA200 上方重新跌下 EMA200
+- 4h Supertrend 翻多或翻空
+- 1d Supertrend 翻多或翻空
+- `OI Change (4h) > 15%` 或 `OI Change (4h) < -15%`
+
+停止价值币沉淀 Bot：
+
+```bash
+npm run stop:value:bot
 ```
 
 ## 获取群 ID 和 topic ID

@@ -21,19 +21,29 @@ function messageTopicId(message) {
 
 function targetTopicIds() {
   return new Set(
-    [config.stockTopicId, config.tradingTopicId, config.summaryTopicId]
+    [
+      config.stockTopicId,
+      config.tradingTopicId,
+      config.summaryTopicId,
+      config.watchTopicId,
+      config.valueTopicId,
+    ]
       .filter(Boolean)
       .map(String),
   );
 }
 
+function isExcludedTopic(message) {
+  return targetTopicIds().has(messageTopicId(message));
+}
+
 function isSourceTopic(message) {
   if (!isConfiguredChat(message)) return false;
   if (config.sourceTopicIds.length === 0) {
-    return !targetTopicIds().has(messageTopicId(message));
+    return !isExcludedTopic(message);
   }
 
-  return config.sourceTopicIds.includes(messageTopicId(message));
+  return config.sourceTopicIds.includes(messageTopicId(message)) && !isExcludedTopic(message);
 }
 
 function isSummaryCommand(message) {
@@ -71,6 +81,8 @@ async function handleMessage(message) {
   console.log(
     `Received ${senderType} message ${message.message_id} from ${senderName} in topic ${messageTopicId(message) || "general"}: ${preview}`,
   );
+
+  if (isConfiguredChat(message) && isExcludedTopic(message)) return;
 
   if (isSummaryCommand(message) && isConfiguredChat(message)) {
     await sendWindowSummary(config.summaryCommandHours);

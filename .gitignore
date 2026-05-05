@@ -3,3 +3,10 @@ node_modules/
 .DS_Store
 .telegram-router.pid
 .telegram-user-router.pid
+.meme-watch.pid
+.meme-watch-bot.pid
+.value-watch-bot.pid
+watchlist.json
+alert-state.json
+value-watchlist.json
+value-alert-state.json

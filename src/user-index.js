@@ -55,18 +55,28 @@ function messageTopicId(message) {
 
 function targetTopicIds() {
   return new Set(
-    [config.stockTopicId, config.tradingTopicId, config.summaryTopicId]
+    [
+      config.stockTopicId,
+      config.tradingTopicId,
+      config.summaryTopicId,
+      config.watchTopicId,
+      config.valueTopicId,
+    ]
       .filter(Boolean)
       .map(String),
   );
 }
 
+function isExcludedTopic(message) {
+  return targetTopicIds().has(messageTopicId(message));
+}
+
 function isSourceTopic(message) {
   if (config.sourceTopicIds.length === 0) {
-    return !targetTopicIds().has(messageTopicId(message));
+    return !isExcludedTopic(message);
   }
 
-  return config.sourceTopicIds.includes(messageTopicId(message));
+  return config.sourceTopicIds.includes(messageTopicId(message)) && !isExcludedTopic(message);
 }
 
 function isSummaryCommand(message) {
@@ -159,6 +169,8 @@ async function handleEvent(event) {
   console.log(
     `Received ${senderKind} message ${message.id} in topic ${messageTopicId(message) || "general"}.`,
   );
+
+  if (isExcludedTopic(message)) return;
 
   if (isSummaryCommand(message)) {
     await sendWindowSummary(config.summaryCommandHours);
