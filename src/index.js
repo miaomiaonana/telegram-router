@@ -84,12 +84,12 @@ async function handleMessage(message) {
     `Received ${senderType} message ${message.message_id} from ${senderName} in topic ${messageTopicId(message) || "general"}: ${preview}`,
   );
 
-  if (isConfiguredChat(message) && isExcludedTopic(message)) return;
-
   if (isSummaryCommand(message) && isConfiguredChat(message)) {
     await sendWindowSummary(config.summaryCommandHours);
     return;
   }
+
+  if (isConfiguredChat(message) && isExcludedTopic(message)) return;
 
   if (!isSourceTopic(message)) return;
 

@@ -172,12 +172,12 @@ async function handleEvent(event) {
     `Received ${senderKind} message ${message.id} in topic ${messageTopicId(message) || "general"}.`,
   );
 
-  if (isExcludedTopic(message)) return;
-
   if (isSummaryCommand(message)) {
     await sendWindowSummary(config.summaryCommandHours);
     return;
   }
+
+  if (isExcludedTopic(message)) return;
 
   if (!isSourceTopic(message)) return;
 
